@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>FSKS Bill Scan</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f2b600'/%3E%3Cpath d='M20 14h24v36l-6-4-6 4-6-4-6 4z' fill='none' stroke='%233a2c00' stroke-width='4' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f3f4f0; --card: #fff; --ink: #1d2220; --muted: #66706b; --line: #d7dbd5;
+    --signal: #f2b600; --signal-ink: #3a2c00; --soft: #fff6d8;
+    --ok: #2f7d4f; --ok-bg: #e3f1e8; --warn: #a86a00; --warn-bg: #fbefd4; --bad: #b3261e; --bad-bg: #f9e2df;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; }
+  body { padding: 0 16px calc(24px + env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0 10px; }
+  .brand b { display: block; font-size: 26px; letter-spacing: .5px; line-height: 1; }
+  .brand span { color: var(--muted); font-size: 13px; }
+  .langs { display: inline-flex; border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 2px; }
+  .langs button { border: 0; background: none; font: inherit; font-size: 14px; font-weight: 600; padding: 6px 9px; border-radius: 6px; color: var(--muted); }
+  .langs button.on { background: var(--signal); color: var(--signal-ink); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-top: 12px; }
+  .label { font-size: 13px; color: var(--muted); font-weight: 600; }
+  input[type=text] { width: 100%; font: inherit; font-size: 18px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; margin-top: 6px; background: #fff; }
+  input[type=text]:focus { outline: 3px solid rgb(242 182 0 / .45); border-color: var(--ink); }
+  .big { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; border: 0; border-radius: 16px;
+         background: var(--signal); color: var(--signal-ink); font: inherit; font-size: 22px; font-weight: 700; padding: 22px 16px; margin-top: 14px; }
+  .big:active { transform: scale(.99); }
+  .row { display: flex; gap: 10px; margin-top: 10px; }
+  .btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line); background: #fff; border-radius: 12px;
+         font: inherit; font-weight: 600; padding: 14px 10px; color: var(--ink); }
+  .btn.dark { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .btn:disabled { opacity: .5; }
+  .hint { color: var(--muted); font-size: 14px; margin: 8px 2px 0; }
+  .thumbs { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0; }
+  .thumbs .t { position: relative; flex: 0 0 auto; width: 76px; height: 100px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: #eee; display: grid; place-items: center; font-size: 12px; color: var(--muted); }
+  .thumbs img { width: 100%; height: 100%; object-fit: cover; }
+  .thumbs .n { position: absolute; left: 4px; top: 4px; background: rgba(0,0,0,.6); color: #fff; font-size: 12px; border-radius: 6px; padding: 0 6px; }
+  .bar { height: 4px; background: #eee; border-radius: 2px; overflow: hidden; margin-top: 8px; }
+  .bar i { display: block; height: 100%; width: 40%; background: var(--signal); animation: slide 1.1s infinite ease-in-out; }
+  @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+  h2 { font-size: 17px; margin: 22px 2px 4px; display: flex; justify-content: space-between; align-items: baseline; }
+  h2 small { color: var(--muted); font-weight: 500; font-size: 14px; }
+  .scan { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-top: 8px; }
+  .scan .top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+  .scan .sup { font-weight: 700; font-size: 17px; }
+  .scan .meta { color: var(--muted); font-size: 14px; }
+  .pill { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 2px 10px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .p-ok { background: var(--ok-bg); color: var(--ok); } .p-warn { background: var(--warn-bg); color: var(--warn); }
+  .p-bad { background: var(--bad-bg); color: var(--bad); } .p-mut { background: #e9ece6; color: var(--muted); }
+  .warn { margin-top: 8px; background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 8px 10px; font-size: 14px; font-weight: 600; }
+  .err { margin-top: 8px; background: var(--bad-bg); color: var(--bad); border-radius: 10px; padding: 8px 10px; font-size: 14px; font-weight: 600; }
+  .grn { margin-top: 8px; background: var(--ok-bg); color: var(--ok); border-radius: 10px; padding: 8px 10px; font-size: 15px; font-weight: 700; }
+  .small-btns { display: flex; gap: 8px; margin-top: 8px; }
+  .small-btns button { border: 1px solid var(--line); background: #fff; border-radius: 8px; font: inherit; font-size: 14px; font-weight: 600; padding: 6px 10px; }
+  .dead { text-align: center; padding: 40px 10px; }
+  .dead b { font-size: 20px; display: block; margin-bottom: 8px; }
+  .toast { position: fixed; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); max-width: 528px; margin: 0 auto; background: #fff; border: 1px solid var(--line);
+           border-left: 5px solid var(--ok); border-radius: 12px; padding: 12px 14px; font-weight: 600; box-shadow: 0 10px 30px -10px rgba(0,0,0,.25); display: none; }
+  .toast.bad { border-left-color: var(--bad); color: var(--bad); }
+  svg.i { width: 26px; height: 26px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><b>FSKS</b><span id="firm">Fateh Singh Karam Singh</span></div>
+  <div class="langs" id="langs"></div>
+</header>
+
+<div id="dead" class="card dead hidden"><b data-t="dead_title"></b><span id="deadMsg" data-t="dead_msg"></span></div>
+
+<main id="app" class="hidden">
+  <div class="card">
+    <div class="label" data-t="your_name"></div>
+    <input id="name" type="text" autocomplete="name" maxlength="40">
+    <div class="hint" id="sessionLabel"></div>
+  </div>
+
+  <!-- the bill being photographed now -->
+  <div id="current" class="card hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center"><b data-t="this_bill"></b><span class="pill p-mut" id="curPages"></span></div>
+    <div class="thumbs" id="curThumbs"></div>
+    <div class="bar hidden" id="curBar"><i></i></div>
+    <div class="row">
+      <button class="btn" id="addPage"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span data-t="add_page"></span></button>
+      <button class="btn dark" id="done"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span data-t="done"></span></button>
+    </div>
+    <div class="hint" data-t="pages_hint"></div>
+  </div>
+
+  <button class="big" id="shoot">
+    <svg class="i" viewBox="0 0 24 24" style="width:34px;height:34px"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+    <span data-t="take_photo"></span>
+  </button>
+  <div class="row">
+    <button class="btn" id="pick"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 15l4-4 4 4 3-3 5 5"/></svg><span data-t="gallery"></span></button>
+  </div>
+  <p class="hint" data-t="tips"></p>
+
+  <h2><span data-t="today"></span><small id="count"></small></h2>
+  <div id="list"></div>
+</main>
+
+<input id="camera" type="file" accept="image/*" capture="environment" class="hidden">
+<input id="files" type="file" accept="image/*,application/pdf" multiple class="hidden">
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const FN = 'https://zcgdazndcmvalbcdqtqc.supabase.co/functions/v1/bill-scan';
+const T = {
+  your_name: { en: 'Your name', hi: 'आपका नाम', pa: 'ਤੁਹਾਡਾ ਨਾਮ' },
+  take_photo: { en: 'Photo of bill', hi: 'बिल की फोटो लें', pa: 'ਬਿੱਲ ਦੀ ਫੋਟੋ ਖਿੱਚੋ' },
+  gallery: { en: 'From gallery / PDF', hi: 'गैलरी / PDF से', pa: 'ਗੈਲਰੀ / PDF ਤੋਂ' },
+  tips: { en: 'Keep the bill flat, in good light, whole page in the photo.', hi: 'बिल सीधा रखें, रोशनी अच्छी हो, पूरा पेज फोटो में आए।', pa: 'ਬਿੱਲ ਸਿੱਧਾ ਰੱਖੋ, ਰੋਸ਼ਨੀ ਚੰਗੀ ਹੋਵੇ, ਪੂਰਾ ਪੰਨਾ ਫੋਟੋ ਵਿੱਚ ਆਵੇ।' },
+  this_bill: { en: 'This bill', hi: 'यह बिल', pa: 'ਇਹ ਬਿੱਲ' },
+  add_page: { en: 'Next page', hi: 'अगला पेज', pa: 'ਅਗਲਾ ਪੰਨਾ' },
+  done: { en: 'Done, send', hi: 'हो गया, भेजें', pa: 'ਹੋ ਗਿਆ, ਭੇਜੋ' },
+  pages_hint: { en: 'Bill has more pages? Tap "Next page". Otherwise tap "Done".', hi: 'बिल में और पेज हैं? "अगला पेज" दबाएँ। नहीं तो "हो गया"।', pa: 'ਬਿੱਲ ਦੇ ਹੋਰ ਪੰਨੇ ਹਨ? "ਅਗਲਾ ਪੰਨਾ" ਦਬਾਓ। ਨਹੀਂ ਤਾਂ "ਹੋ ਗਿਆ"।' },
+  pages: { en: '{n} page(s)', hi: '{n} पेज', pa: '{n} ਪੰਨੇ' },
+  today: { en: 'Bills sent', hi: 'भेजे गए बिल', pa: 'ਭੇਜੇ ਬਿੱਲ' },
+  uploading: { en: 'Uploading…', hi: 'भेज रहे हैं…', pa: 'ਭੇਜ ਰਹੇ ਹਾਂ…' },
+  reading: { en: 'Reading the bill…', hi: 'बिल पढ़ रहे हैं…', pa: 'ਬਿੱਲ ਪੜ੍ਹ ਰਹੇ ਹਾਂ…' },
+  read_ok: { en: 'Read', hi: 'पढ़ लिया', pa: 'ਪੜ੍ਹ ਲਿਆ' },
+  in_grn: { en: 'Added to goods-in {g}', hi: 'माल-आवक {g} में जुड़ गया', pa: 'ਮਾਲ-ਆਮਦ {g} ਵਿੱਚ ਜੁੜ ਗਿਆ' },
+  office_check: { en: 'Saved. Office will check it.', hi: 'सेव हो गया। ऑफिस चेक करेगा।', pa: 'ਸੇਵ ਹੋ ਗਿਆ। ਦਫ਼ਤਰ ਚੈੱਕ ਕਰੇਗਾ।' },
+  failed: { en: 'Could not read', hi: 'पढ़ नहीं पाए', pa: 'ਪੜ੍ਹ ਨਹੀਂ ਸਕੇ' },
+  waiting: { en: 'Not sent yet', hi: 'अभी भेजा नहीं', pa: 'ਹਾਲੇ ਭੇਜਿਆ ਨਹੀਂ' },
+  items: { en: '{n} items', hi: '{n} आइटम', pa: '{n} ਆਈਟਮ' },
+  unmatched: { en: '{n} item(s) not recognised - office will choose', hi: '{n} आइटम पहचाने नहीं - ऑफिस चुनेगा', pa: '{n} ਆਈਟਮ ਪਛਾਣੇ ਨਹੀਂ - ਦਫ਼ਤਰ ਚੁਣੇਗਾ' },
+  duplicate_bill: { en: 'This bill was already entered before!', hi: 'यह बिल पहले ही चढ़ चुका है!', pa: 'ਇਹ ਬਿੱਲ ਪਹਿਲਾਂ ਹੀ ਚੜ੍ਹ ਚੁੱਕਾ ਹੈ!' },
+  supplier_not_found: { en: 'New supplier - office will add', hi: 'नया सप्लायर - ऑफिस जोड़ेगा', pa: 'ਨਵਾਂ ਸਪਲਾਇਰ - ਦਫ਼ਤਰ ਜੋੜੇਗਾ' },
+  lines_total_mismatch: { en: 'Item total does not match bill total - office will check', hi: 'आइटम का जोड़ बिल से नहीं मिलता - ऑफिस चेक करेगा', pa: 'ਆਈਟਮਾਂ ਦਾ ਜੋੜ ਬਿੱਲ ਨਾਲ ਨਹੀਂ ਮਿਲਦਾ - ਦਫ਼ਤਰ ਚੈੱਕ ਕਰੇਗਾ' },
+  buyer_gstin_mismatch: { en: 'Bill is not in FSKS name / GSTIN!', hi: 'बिल FSKS के नाम / GSTIN पर नहीं है!', pa: 'ਬਿੱਲ FSKS ਦੇ ਨਾਮ / GSTIN ਤੇ ਨਹੀਂ!' },
+  retry: { en: 'Read again', hi: 'फिर पढ़ें', pa: 'ਦੁਬਾਰਾ ਪੜ੍ਹੋ' },
+  remove: { en: 'Remove', hi: 'हटाएँ', pa: 'ਹਟਾਓ' },
+  send: { en: 'Send', hi: 'भेजें', pa: 'ਭੇਜੋ' },
+  sent_toast: { en: 'Sent. You can photo the next bill.', hi: 'भेज दिया। अगले बिल की फोटो लें।', pa: 'ਭੇਜ ਦਿੱਤਾ। ਅਗਲੇ ਬਿੱਲ ਦੀ ਫੋਟੋ ਖਿੱਚੋ।' },
+  net_err: { en: 'No internet? Try again.', hi: 'इंटरनेट नहीं? फिर कोशिश करें।', pa: 'ਇੰਟਰਨੈੱਟ ਨਹੀਂ? ਫਿਰ ਕੋਸ਼ਿਸ਼ ਕਰੋ।' },
+  name_first: { en: 'Write your name first', hi: 'पहले अपना नाम लिखें', pa: 'ਪਹਿਲਾਂ ਆਪਣਾ ਨਾਮ ਲਿਖੋ' },
+  dead_title: { en: 'This QR code does not work', hi: 'यह QR कोड नहीं चल रहा', pa: 'ਇਹ QR ਕੋਡ ਨਹੀਂ ਚੱਲ ਰਿਹਾ' },
+  dead_msg: { en: 'It has expired or was switched off. Ask the office for a new QR code.', hi: 'इसकी मियाद खत्म हो गई या बंद कर दिया गया। ऑफिस से नया QR कोड लें।', pa: 'ਇਸਦੀ ਮਿਆਦ ਖ਼ਤਮ ਹੋ ਗਈ ਜਾਂ ਬੰਦ ਕਰ ਦਿੱਤਾ ਗਿਆ। ਦਫ਼ਤਰ ਤੋਂ ਨਵਾਂ QR ਕੋਡ ਲਓ।' },
+  valid_till: { en: 'QR works till {d}', hi: 'QR {d} तक चलेगा', pa: 'QR {d} ਤੱਕ ਚੱਲੇਗਾ' },
+  none_yet: { en: 'No bills yet.', hi: 'अभी कोई बिल नहीं।', pa: 'ਹਾਲੇ ਕੋਈ ਬਿੱਲ ਨਹੀਂ।' },
+};
+const LANGS = { pa: 'ਪੰਜਾਬੀ', hi: 'हिंदी', en: 'English' };
+const store = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } } };
+let lang = store.get('fsks-scan-lang') || ((navigator.language || '').startsWith('pa') ? 'pa' : (navigator.language || '').startsWith('hi') ? 'hi' : 'pa');
+const t = (k, v = {}) => { let s = (T[k] && (T[k][lang] || T[k].en)) || k; for (const [a, b] of Object.entries(v)) s = s.replace(`{${a}}`, b); return s; };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const inr = (n) => Number(n).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+
+const token = new URLSearchParams(location.hash.slice(1)).get('t') || new URLSearchParams(location.search).get('t');
+let scans = [];          // from the server
+let current = null;      // { id, pages: [{url}], busy }
+let pendingLocal = [];   // gallery files still uploading: { key, name, status }
+
+function renderLang() {
+  $('langs').innerHTML = Object.entries(LANGS).map(([k, l]) => `<button class="${k === lang ? 'on' : ''}" data-l="${k}">${l}</button>`).join('');
+  document.querySelectorAll('[data-t]').forEach((el) => { el.textContent = t(el.dataset.t); });
+  document.documentElement.lang = lang;
+  render();
+}
+$('langs').addEventListener('click', (e) => { const l = e.target.dataset.l; if (l) { lang = l; store.set('fsks-scan-lang', l); renderLang(); } });
+
+let toastTimer;
+function toast(msg, bad = false) {
+  const el = $('toast'); el.textContent = msg; el.className = 'toast' + (bad ? ' bad' : ''); el.style.display = 'block';
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.style.display = 'none'; }, bad ? 6000 : 3200);
+}
+
+async function call(action, body = {}) {
+  const r = await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, token, ...body }) });
+  const j = await r.json().catch(() => ({ error: 'Server error' }));
+  if (r.status === 401) { showDead(); throw new Error(j.error); }
+  if (!r.ok) throw new Error(j.error || 'Error');
+  return j;
+}
+function showDead() { $('app').classList.add('hidden'); $('dead').classList.remove('hidden'); }
+
+// shrink phone photos (often 4-8 MB) to ~0.5 MB: long side 2200 px, JPEG 0.82 - still sharp enough to read small print
+async function prepare(file) {
+  if (file.type === 'application/pdf') return { mime: 'application/pdf', data: await toB64(file), thumb: null };
+  try {
+    const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    const scale = Math.min(1, 2200 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas');
+    c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise((res) => c.toBlob(res, 'image/jpeg', 0.82));
+    return { mime: 'image/jpeg', data: await toB64(blob), thumb: URL.createObjectURL(blob) };
+  } catch {
+    return { mime: file.type || 'image/jpeg', data: await toB64(file), thumb: URL.createObjectURL(file) };
+  }
+}
+function toB64(blob) {
+  return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1]); fr.onerror = rej; fr.readAsDataURL(blob); });
+}
+
+function needName() {
+  const n = $('name').value.trim();
+  if (!n) { toast(t('name_first'), true); $('name').focus(); return null; }
+  store.set('fsks-scan-name', n);
+  return n;
+}
+
+// camera: page 1 starts a bill, "Next page" adds pages, "Done" sends it to be read
+$('shoot').onclick = () => { if (!needName()) return; current = current && current.id ? current : null; $('camera').click(); };
+$('addPage').onclick = () => $('camera').click();
+$('camera').onchange = async (e) => {
+  const file = e.target.files[0]; e.target.value = '';
+  if (!file) return;
+  const name = needName(); if (!name) return;
+  if (!current) current = { id: null, pages: [], busy: false };
+  const page = { url: null, uploading: true };
+  current.pages.push(page); current.busy = true; render();
+  try {
+    const p = await prepare(file); page.url = p.thumb; render();
+    const r = await call('upload', { scan_id: current.id, name, mime: p.mime, data: p.data });
+    current.id = r.id; page.uploading = false;
+  } catch (ex) {
+    current.pages = current.pages.filter((x) => x !== page);
+    if (!current.pages.length) current = null;
+    toast(ex.message === 'Failed to fetch' ? t('net_err') : ex.message, true);
+  } finally { if (current) current.busy = false; render(); }
+};
+$('done').onclick = async () => {
+  if (!current?.id || current.busy) return;
+  const id = current.id;
+  $('done').disabled = true;
+  try {
+    await call('read', { scan_id: id });
+    current = null; toast(t('sent_toast'));
+    await refresh(); poll();
+  } catch (ex) { toast(ex.message === 'Failed to fetch' ? t('net_err') : ex.message, true); }
+  finally { $('done').disabled = false; render(); }
+};
+
+// gallery / PDF: every file is its own bill and is sent straight away
+$('pick').onclick = () => { if (needName()) $('files').click(); };
+$('files').onchange = async (e) => {
+  const files = [...e.target.files]; e.target.value = '';
+  const name = needName(); if (!name) return;
+  for (const f of files) {
+    const key = Math.random();
+    pendingLocal.push({ key, name: f.name }); render();
+    try {
+      const p = await prepare(f);
+      const r = await call('upload', { name, mime: p.mime, data: p.data });
+      await call('read', { scan_id: r.id });
+    } catch (ex) { toast(`${f.name}: ${ex.message === 'Failed to fetch' ? t('net_err') : ex.message}`, true); }
+    pendingLocal = pendingLocal.filter((x) => x.key !== key);
+    await refresh(); render();
+  }
+  toast(t('sent_toast')); poll();
+};
+
+function scanCard(s) {
+  const st = s.status;
+  const pill = st === 'reading' ? `<span class="pill p-warn">${t('reading')}</span>`
+    : st === 'used' || st === 'read' ? `<span class="pill p-ok">✓ ${t('read_ok')}</span>`
+    : st === 'failed' ? `<span class="pill p-bad">✗ ${t('failed')}</span>`
+    : `<span class="pill p-mut">${t('waiting')}</span>`;
+  const when = new Date(s.created_at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+  const warn = (s.warnings || []).map((w) => {
+    if (w.startsWith('unmatched:')) return t('unmatched', { n: w.split(':')[1] });
+    return T[w] ? t(w) : null;
+  }).filter(Boolean);
+  const head = st === 'read' || st === 'used'
+    ? `<div class="sup">${esc(s.supplier || '?')}</div><div class="meta">${s.bill_no ? 'Bill ' + esc(s.bill_no) : ''}${s.bill_date ? ' · ' + esc(s.bill_date.split('-').reverse().join('-')) : ''} · ${t('items', { n: s.lines })}${s.total ? ' · ₹' + inr(s.total) : ''}</div>`
+    : `<div class="sup">${t('pages', { n: s.pages })}</div><div class="meta">${when}${s.scanned_by ? ' · ' + esc(s.scanned_by) : ''}</div>`;
+  return `<div class="scan"><div class="top"><div>${head}</div>${pill}</div>
+    ${st === 'reading' ? '<div class="bar"><i></i></div>' : ''}
+    ${s.grn ? `<div class="grn">✓ ${t('in_grn', { g: esc(s.grn) })}</div>` : st === 'read' ? `<div class="grn" style="background:var(--soft);color:var(--signal-ink)">${t('office_check')}</div>` : ''}
+    ${warn.map((w) => `<div class="warn">⚠ ${esc(w)}</div>`).join('')}
+    ${st === 'failed' ? `<div class="err">${esc(s.error || '')}</div><div class="small-btns"><button data-retry="${s.id}">${t('retry')}</button><button data-remove="${s.id}">${t('remove')}</button></div>` : ''}
+    ${st === 'uploaded' && (!current || current.id !== s.id) ? `<div class="small-btns"><button data-retry="${s.id}">${t('send')}</button><button data-remove="${s.id}">${t('remove')}</button></div>` : ''}
+  </div>`;
+}
+
+function render() {
+  if (current) {
+    $('current').classList.remove('hidden');
+    $('curPages').textContent = t('pages', { n: current.pages.length });
+    $('curThumbs').innerHTML = current.pages.map((p, i) => `<div class="t">${p.url ? `<img src="${p.url}" alt="">` : '…'}<span class="n">${i + 1}</span></div>`).join('');
+    $('curBar').classList.toggle('hidden', !current.busy);
+    $('done').disabled = !current.id || current.busy;
+    $('addPage').disabled = current.busy;
+    $('shoot').classList.add('hidden');
+  } else {
+    $('current').classList.add('hidden');
+    $('shoot').classList.remove('hidden');
+  }
+  const local = pendingLocal.map((p) => `<div class="scan"><div class="top"><div><div class="sup">${esc(p.name)}</div></div><span class="pill p-warn">${t('uploading')}</span></div><div class="bar"><i></i></div></div>`).join('');
+  const shown = scans.filter((s) => !current || s.id !== current.id);
+  $('list').innerHTML = local + (shown.length ? shown.map(scanCard).join('') : (local ? '' : `<p class="hint">${t('none_yet')}</p>`));
+  $('count').textContent = shown.length ? String(shown.length) : '';
+}
+
+$('list').addEventListener('click', async (e) => {
+  const retry = e.target.dataset.retry, remove = e.target.dataset.remove;
+  try {
+    if (retry) { await call('read', { scan_id: Number(retry) }); await refresh(); poll(); }
+    if (remove) { await call('discard', { scan_id: Number(remove) }); await refresh(); }
+  } catch (ex) { toast(ex.message, true); }
+});
+
+async function refresh() {
+  const j = await call('hello');
+  scans = j.scans;
+  $('firm').textContent = j.firm;
+  const till = j.expires_at ? new Date(j.expires_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' }) : '';
+  $('sessionLabel').textContent = `${j.label}${till ? ' · ' + t('valid_till', { d: till }) : ''}`;
+  render();
+}
+
+let pollTimer = null;
+function poll() {
+  clearTimeout(pollTimer);
+  const busy = scans.filter((s) => s.status === 'reading').map((s) => s.id);
+  if (!busy.length) return;
+  pollTimer = setTimeout(async () => {
+    try {
+      const j = await call('status', { ids: busy });
+      for (const s of j.scans) { const i = scans.findIndex((x) => x.id === s.id); if (i >= 0) scans[i] = s; }
+      render();
+    } catch { /* keep trying */ }
+    poll();
+  }, 3000);
+}
+
+(async () => {
+  $('name').value = store.get('fsks-scan-name') || '';
+  renderLang();
+  if (!token) return showDead();
+  try {
+    await refresh();
+    $('app').classList.remove('hidden');
+    poll();
+  } catch (ex) {
+    if (!$('dead').classList.contains('hidden')) return;
+    $('app').classList.remove('hidden');
+    toast(t('net_err'), true);
+  }
+})();
+window.addEventListener('hashchange', () => location.reload());
+document.addEventListener('visibilitychange', () => { if (!document.hidden && token) refresh().then(poll).catch(() => {}); });
+</script>
+</body>
+</html>
