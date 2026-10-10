@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>FSKS Stock Count</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f2b600'/%3E%3Cpath d='M14 22l18-8 18 8-18 8zM14 22v20l18 8 18-8V22M32 30v20' fill='none' stroke='%233a2c00' stroke-width='4' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root { --bg:#f3f4f0; --card:#fff; --ink:#1d2220; --muted:#66706b; --line:#d7dbd5; --signal:#f2b600; --signal-ink:#3a2c00; --soft:#fff6d8;
+          --ok:#2f7d4f; --ok-bg:#e3f1e8; --warn:#a86a00; --warn-bg:#fbefd4; --bad:#b3261e; --bad-bg:#f9e2df; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; }
+  body { padding: 0 16px calc(96px + env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0 6px; }
+  .brand b { display: block; font-size: 26px; line-height: 1; } .brand span { color: var(--muted); font-size: 13px; }
+  .langs { display: inline-flex; border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 2px; }
+  .langs button { border: 0; background: none; font: inherit; font-size: 14px; font-weight: 600; padding: 6px 9px; border-radius: 6px; color: var(--muted); }
+  .langs button.on { background: var(--signal); color: var(--signal-ink); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-top: 10px; }
+  .title { font-size: 20px; font-weight: 700; } .muted { color: var(--muted); font-size: 14px; }
+  .label { font-size: 13px; color: var(--muted); font-weight: 600; }
+  input[type=text], input[type=search], input[inputmode] { width: 100%; font: inherit; font-size: 18px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+  input:focus { outline: 3px solid rgb(242 182 0 / .45); border-color: var(--ink); }
+  .bar { height: 10px; background: #e7e9e4; border-radius: 6px; overflow: hidden; margin-top: 8px; } .bar i { display: block; height: 100%; background: var(--ok); }
+  .row { display: flex; gap: 10px; margin-top: 10px; }
+  .big { flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; border: 0; border-radius: 14px; background: var(--signal); color: var(--signal-ink);
+         font: inherit; font-size: 19px; font-weight: 700; padding: 16px 10px; }
+  .btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line); background: #fff; border-radius: 12px; font: inherit; font-weight: 600; padding: 13px 10px; color: var(--ink); }
+  .btn.ok { background: var(--ok); color: #fff; border-color: var(--ok); }
+  .tabs { display: flex; gap: 6px; margin: 14px 0 6px; } .tabs button { flex: 1; border: 1px solid var(--line); background: #fff; border-radius: 10px; font: inherit; font-weight: 600; font-size: 15px; padding: 9px 6px; color: var(--muted); }
+  .tabs button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .item { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; margin-top: 7px; width: 100%; text-align: left; font: inherit; color: inherit; }
+  .item .n { flex: 1; min-width: 0; } .item .n b { display: block; font-size: 16px; line-height: 1.25; } .item .n span { font-size: 13px; color: var(--muted); }
+  .item .q { font-size: 22px; font-weight: 800; color: var(--ok); white-space: nowrap; } .item.done { background: var(--ok-bg); border-color: #bfdcc8; }
+  .sheet { position: fixed; inset: auto 0 0 0; background: #fff; border-radius: 20px 20px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,.25); padding: 16px 16px calc(20px + env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto; z-index: 20; }
+  .shade { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 19; }
+  .qty { display: flex; align-items: center; gap: 10px; margin: 14px 0; }
+  .qty button { width: 64px; height: 64px; border-radius: 14px; border: 1px solid var(--line); background: #fff; font-size: 30px; font-weight: 700; }
+  .qty input { flex: 1; text-align: center; font-size: 34px; font-weight: 800; padding: 10px; }
+  .note { background: var(--soft); border-radius: 10px; padding: 8px 10px; font-size: 14px; margin-top: 8px; }
+  .footer { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1px solid var(--line); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); z-index: 10; }
+  .footer .in { max-width: 528px; margin: 0 auto; display: flex; gap: 10px; align-items: center; }
+  .dead { text-align: center; padding: 40px 10px; } .dead b { font-size: 20px; display: block; margin-bottom: 8px; }
+  .toast { position: fixed; left: 16px; right: 16px; top: calc(12px + env(safe-area-inset-top)); max-width: 528px; margin: 0 auto; background: #fff; border: 1px solid var(--line);
+           border-left: 5px solid var(--ok); border-radius: 12px; padding: 12px 14px; font-weight: 600; box-shadow: 0 10px 30px -10px rgba(0,0,0,.25); display: none; z-index: 40; }
+  .toast.bad { border-left-color: var(--bad); color: var(--bad); }
+  .pending { color: var(--warn); font-weight: 700; font-size: 13px; }
+  #cam { position: fixed; inset: 0; background: #000; z-index: 30; display: none; }
+  #cam video { width: 100%; height: 100%; object-fit: cover; }
+  #cam .frame { position: absolute; left: 10%; right: 10%; top: 35%; height: 22%; border: 3px solid var(--signal); border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0,0,0,.35); }
+  #cam .close { position: absolute; left: 16px; right: 16px; bottom: calc(24px + env(safe-area-inset-bottom)); }
+  #cam .hint { position: absolute; top: calc(20px + env(safe-area-inset-top)); left: 0; right: 0; text-align: center; color: #fff; font-weight: 700; }
+  svg.i { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header><div class="brand"><b>FSKS</b><span id="firm">Fateh Singh Karam Singh</span></div><div class="langs" id="langs"></div></header>
+<div id="dead" class="card dead hidden"><b data-t="dead_title"></b><span data-t="dead_msg"></span></div>
+
+<main id="app" class="hidden">
+  <div class="card">
+    <div class="title" id="ctitle"></div>
+    <div class="muted" id="cmeta"></div>
+    <div class="bar"><i id="prog" style="width:0"></i></div>
+    <div class="muted" id="progtext" style="margin-top:4px"></div>
+  </div>
+  <div class="card">
+    <div class="label" data-t="your_name"></div>
+    <input id="name" type="text" autocomplete="name" maxlength="40" style="margin-top:6px">
+  </div>
+  <div class="row">
+    <button class="big" id="scanBtn"><svg class="i" viewBox="0 0 24 24"><path d="M4 7V5h3M17 5h3v2M20 17v2h-3M7 19H4v-2M7 9v6M10 9v6M13 9v6M16 9v6"/></svg><span data-t="scan"></span></button>
+  </div>
+  <input id="q" type="search" style="margin-top:10px" autocomplete="off">
+  <div class="tabs"><button data-tab="todo" class="on"></button><button data-tab="done"></button></div>
+  <div id="list"></div>
+  <button class="btn hidden" id="more" style="margin-top:10px;width:100%"></button>
+  <button class="btn hidden" id="searchAll" style="margin-top:10px;width:100%"></button>
+</main>
+
+<div class="footer hidden" id="footer"><div class="in">
+  <div style="flex:1"><div style="font-weight:700" id="ftext"></div><div class="pending hidden" id="pend"></div></div>
+  <button class="btn ok" style="flex:0 0 auto;padding:13px 18px" id="submit"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span data-t="done_send"></span></button>
+</div></div>
+
+<div id="cam"><video id="video" playsinline muted></video><div class="frame"></div><div class="hint" data-t="point_barcode"></div>
+  <button class="btn close" id="camClose" data-t="close"></button></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const FN = 'https://zcgdazndcmvalbcdqtqc.supabase.co/functions/v1/stock-count';
+const T = {
+  your_name: { en: 'Your name', hi: 'आपका नाम', pa: 'ਤੁਹਾਡਾ ਨਾਮ' },
+  scan: { en: 'Scan barcode', hi: 'बारकोड स्कैन', pa: 'ਬਾਰਕੋਡ ਸਕੈਨ' },
+  search: { en: 'Search: size, name or code (B52, SPZ 1000, hose 2")', hi: 'खोजें: साइज़, नाम या कोड (B52, SPZ 1000)', pa: 'ਖੋਜੋ: ਸਾਈਜ਼, ਨਾਮ ਜਾਂ ਕੋਡ (B52, SPZ 1000)' },
+  todo: { en: 'To count', hi: 'गिनना है', pa: 'ਗਿਣਨਾ ਹੈ' },
+  done: { en: 'Counted', hi: 'गिन लिया', pa: 'ਗਿਣ ਲਿਆ' },
+  progress: { en: '{c} of {n} counted', hi: '{n} में से {c} गिने', pa: '{n} ਵਿੱਚੋਂ {c} ਗਿਣੇ' },
+  how_many: { en: 'How many are on the shelf?', hi: 'शेल्फ पर कितने हैं?', pa: 'ਸ਼ੈਲਫ ਉੱਤੇ ਕਿੰਨੇ ਹਨ?' },
+  save: { en: 'Save', hi: 'सेव', pa: 'ਸੇਵ' },
+  add_more: { en: 'Add to it', hi: 'और जोड़ें', pa: 'ਹੋਰ ਜੋੜੋ' },
+  replace: { en: 'Replace', hi: 'बदलें', pa: 'ਬਦਲੋ' },
+  counted_before: { en: 'Already counted: {q} (by {who}). Found more in another place? Tap "Add to it".', hi: 'पहले गिना: {q} ({who})। दूसरी जगह और मिले? "और जोड़ें" दबाएँ।', pa: 'ਪਹਿਲਾਂ ਗਿਣਿਆ: {q} ({who})। ਹੋਰ ਥਾਂ ਹੋਰ ਮਿਲੇ? "ਹੋਰ ਜੋੜੋ" ਦਬਾਓ।' },
+  remove: { en: 'Remove my count', hi: 'गिनती हटाएँ', pa: 'ਗਿਣਤੀ ਹਟਾਓ' },
+  cancel: { en: 'Cancel', hi: 'रद्द', pa: 'ਰੱਦ' },
+  close: { en: 'Close', hi: 'बंद करें', pa: 'ਬੰਦ ਕਰੋ' },
+  done_send: { en: 'Done', hi: 'हो गया', pa: 'ਹੋ ਗਿਆ' },
+  sent: { en: 'Sent to the office. Thank you!', hi: 'ऑफिस को भेज दिया। धन्यवाद!', pa: 'ਦਫ਼ਤਰ ਨੂੰ ਭੇਜ ਦਿੱਤਾ। ਧੰਨਵਾਦ!' },
+  sure_done: { en: 'Finished counting? Items not counted will be checked by the office.', hi: 'गिनती पूरी? जो नहीं गिने वो ऑफिस देखेगा।', pa: 'ਗਿਣਤੀ ਪੂਰੀ? ਜੋ ਨਹੀਂ ਗਿਣੇ ਉਹ ਦਫ਼ਤਰ ਵੇਖੇਗਾ।' },
+  saved: { en: 'Saved', hi: 'सेव हो गया', pa: 'ਸੇਵ ਹੋ ਗਿਆ' },
+  waiting_net: { en: '{n} waiting for internet', hi: '{n} इंटरनेट का इंतज़ार', pa: '{n} ਇੰਟਰਨੈੱਟ ਦੀ ਉਡੀਕ' },
+  name_first: { en: 'Write your name first', hi: 'पहले अपना नाम लिखें', pa: 'ਪਹਿਲਾਂ ਆਪਣਾ ਨਾਮ ਲਿਖੋ' },
+  not_found: { en: 'Barcode {c} not found - search by name', hi: 'बारकोड {c} नहीं मिला - नाम से खोजें', pa: 'ਬਾਰਕੋਡ {c} ਨਹੀਂ ਮਿਲਿਆ - ਨਾਮ ਨਾਲ ਖੋਜੋ' },
+  no_camera: { en: 'This phone cannot read barcodes here - search by name', hi: 'यह फ़ोन यहाँ बारकोड नहीं पढ़ सकता - नाम से खोजें', pa: 'ਇਹ ਫ਼ੋਨ ਇੱਥੇ ਬਾਰਕੋਡ ਨਹੀਂ ਪੜ੍ਹ ਸਕਦਾ - ਨਾਮ ਨਾਲ ਖੋਜੋ' },
+  point_barcode: { en: 'Point at the barcode on the label', hi: 'लेबल के बारकोड पर रखें', pa: 'ਲੇਬਲ ਦੇ ਬਾਰਕੋਡ ਉੱਤੇ ਰੱਖੋ' },
+  show_more: { en: 'Show more', hi: 'और दिखाएँ', pa: 'ਹੋਰ ਵਿਖਾਓ' },
+  search_all: { en: 'Not in this list? Search all items', hi: 'इस सूची में नहीं? सारे आइटम में खोजें', pa: 'ਇਸ ਸੂਚੀ ਵਿੱਚ ਨਹੀਂ? ਸਾਰੇ ਆਈਟਮ ਵਿੱਚ ਖੋਜੋ' },
+  extra: { en: 'not in this count', hi: 'इस गिनती में नहीं', pa: 'ਇਸ ਗਿਣਤੀ ਵਿੱਚ ਨਹੀਂ' },
+  till: { en: 'open till {d}', hi: '{d} तक खुला', pa: '{d} ਤੱਕ ਖੁੱਲ੍ਹਾ' },
+  dead_title: { en: 'This count is closed', hi: 'यह गिनती बंद है', pa: 'ਇਹ ਗਿਣਤੀ ਬੰਦ ਹੈ' },
+  dead_msg: { en: 'It was finished, cancelled or the QR is old. Ask the office for a new QR.', hi: 'यह पूरी हो गई, रद्द हुई या QR पुराना है। ऑफिस से नया QR लें।', pa: 'ਇਹ ਪੂਰੀ ਹੋ ਗਈ, ਰੱਦ ਹੋਈ ਜਾਂ QR ਪੁਰਾਣਾ ਹੈ। ਦਫ਼ਤਰ ਤੋਂ ਨਵਾਂ QR ਲਓ।' },
+  net_err: { en: 'No internet - saved on this phone, will send when back', hi: 'इंटरनेट नहीं - फ़ोन में सेव, बाद में चला जाएगा', pa: 'ਇੰਟਰਨੈੱਟ ਨਹੀਂ - ਫ਼ੋਨ ਵਿੱਚ ਸੇਵ, ਬਾਅਦ ਵਿੱਚ ਚਲਾ ਜਾਵੇਗਾ' },
+};
+const LANGS = { pa: 'ਪੰਜਾਬੀ', hi: 'हिंदी', en: 'English' };
+const store = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* private */ } } };
+let lang = store.get('fsks-scan-lang') || 'pa';
+const t = (k, v = {}) => { let s = (T[k] && (T[k][lang] || T[k].en)) || k; for (const [a, b] of Object.entries(v)) s = s.replace(`{${a}}`, b); return s; };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+const fmtQ = (q) => Number(q).toLocaleString('en-IN', { maximumFractionDigits: 3 });
+const measured = (u) => ['MTR', 'KG', 'MM', 'INCH', 'AS PER LIST'].includes(String(u || '').toUpperCase());
+
+const token = new URLSearchParams(location.hash.slice(1)).get('t');
+const QKEY = `fsks-count-queue-${token}`;
+let items = [], byId = new Map(), lines = new Map(), tab = 'todo', limit = 80, current = null, extraResults = null;
+let queue = JSON.parse(store.get(QKEY) || '[]');
+
+function toast(msg, bad = false) { const el = $('toast'); el.textContent = msg; el.className = 'toast' + (bad ? ' bad' : ''); el.style.display = 'block'; clearTimeout(toast.tm); toast.tm = setTimeout(() => { el.style.display = 'none'; }, bad ? 5000 : 2000); }
+async function call(action, body = {}) {
+  const r = await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, token, ...body }) });
+  const j = await r.json().catch(() => ({ error: 'Server error' }));
+  if (r.status === 401) { showDead(); throw Object.assign(new Error(j.error), { fatal: true }); }
+  if (!r.ok) throw Object.assign(new Error(j.error || 'Error'), { fatal: true });
+  return j;
+}
+function showDead() { $('app').classList.add('hidden'); $('footer').classList.add('hidden'); $('dead').classList.remove('hidden'); }
+
+function renderLang() {
+  $('langs').innerHTML = Object.entries(LANGS).map(([k, l]) => `<button class="${k === lang ? 'on' : ''}" data-l="${k}">${l}</button>`).join('');
+  document.querySelectorAll('[data-t]').forEach((el) => { el.textContent = t(el.dataset.t); });
+  $('q').placeholder = t('search');
+  document.documentElement.lang = lang;
+  render();
+}
+$('langs').addEventListener('click', (e) => { if (e.target.dataset.l) { lang = e.target.dataset.l; store.set('fsks-scan-lang', lang); renderLang(); } });
+
+function matches(it, q) {
+  if (!q) return true;
+  const hay = norm(`${it.name} ${it.code} ${it.barcode || ''}`); const hayTight = hay.replace(/ /g, '');
+  return norm(q).split(' ').every((w) => hay.includes(w) || hayTight.includes(w));
+}
+function render() {
+  if (!items.length) return;
+  const inScope = items.filter((i) => !i.extra);
+  const counted = inScope.filter((i) => lines.has(i.id)).length;
+  $('prog').style.width = `${inScope.length ? Math.round(counted * 100 / inScope.length) : 0}%`;
+  $('progtext').textContent = t('progress', { c: counted, n: inScope.length });
+  $('ftext').textContent = t('progress', { c: counted, n: inScope.length });
+  const tabs = document.querySelectorAll('.tabs button');
+  tabs[0].textContent = `${t('todo')} (${inScope.length - counted})`; tabs[1].textContent = `${t('done')} (${lines.size})`;
+  tabs.forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
+  $('pend').textContent = t('waiting_net', { n: queue.length }); $('pend').classList.toggle('hidden', !queue.length);
+  const q = $('q').value.trim();
+  let list = extraResults || items.filter((i) => (tab === 'todo' ? !lines.has(i.id) && !i.extra : lines.has(i.id)) && matches(i, q));
+  if (tab === 'done' && !extraResults) list.sort((a, b) => String(lines.get(b.id).counted_at).localeCompare(String(lines.get(a.id).counted_at)));
+  const shown = list.slice(0, limit);
+  $('list').innerHTML = shown.map((i) => {
+    const l = lines.get(i.id);
+    return `<button class="item ${l ? 'done' : ''}" data-id="${i.id}"><div class="n"><b>${esc(i.name)}</b><span>${esc(i.code)}${i.rack ? ' · ' + esc(i.rack) : ''}${i.extra ? ' · ' + t('extra') : ''}</span></div>
+      ${l ? `<div class="q">${fmtQ(l.counted_qty)} <span style="font-size:13px;color:var(--muted)">${esc(String(i.unit).toLowerCase())}</span></div>` : ''}</button>`;
+  }).join('');
+  $('more').classList.toggle('hidden', list.length <= limit); $('more').textContent = `${t('show_more')} (${list.length - limit})`;
+  $('searchAll').classList.toggle('hidden', !(q.length >= 2 && !extraResults && tab === 'todo' && list.length < 3)); $('searchAll').textContent = t('search_all');
+}
+document.querySelector('.tabs').addEventListener('click', (e) => { if (e.target.dataset.tab) { tab = e.target.dataset.tab; limit = 80; extraResults = null; render(); } });
+$('q').addEventListener('input', () => { limit = 80; extraResults = null; render(); });
+$('more').onclick = () => { limit += 120; render(); };
+$('searchAll').onclick = async () => {
+  try { const j = await call('search', { q: $('q').value }); for (const i of j.items) if (!byId.has(i.id)) { i.extra = true; items.push(i); byId.set(i.id, i); } extraResults = j.items.map((i) => byId.get(i.id)); render(); }
+  catch (ex) { toast(ex.message, true); }
+};
+$('list').addEventListener('click', (e) => { const b = e.target.closest('.item'); if (b) openItem(byId.get(Number(b.dataset.id))); });
+
+function needName() { const n = $('name').value.trim(); if (!n) { toast(t('name_first'), true); $('name').focus(); return null; } store.set('fsks-scan-name', n); return n; }
+
+// the count sheet for one item
+function openItem(it) {
+  if (!it || !needName()) return;
+  current = it;
+  const l = lines.get(it.id);
+  const step = measured(it.unit) ? 0.5 : 1;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `<div class="shade" id="shade"></div><div class="sheet" id="sheet">
+    <div style="font-size:19px;font-weight:700;line-height:1.25">${esc(it.name)}</div><div class="muted">${esc(it.code)} · ${esc(it.unit)}${it.rack ? ' · ' + esc(it.rack) : ''}</div>
+    ${l ? `<div class="note">${esc(t('counted_before', { q: fmtQ(l.counted_qty) + ' ' + String(it.unit).toLowerCase(), who: l.counted_by || '-' }))}</div>` : ''}
+    <div class="label" style="margin-top:12px">${t('how_many')}</div>
+    <div class="qty"><button type="button" id="minus">−</button><input id="qty" inputmode="decimal" value="" placeholder="0"><button type="button" id="plus">+</button></div>
+    <div class="row">${l ? `<button class="btn" id="addBtn">${t('add_more')}</button><button class="big" id="saveBtn">${t('replace')}</button>` : `<button class="big" id="saveBtn">${t('save')}</button>`}</div>
+    <div class="row"><button class="btn" id="cancelBtn">${t('cancel')}</button>${l ? `<button class="btn" id="removeBtn" style="color:var(--bad)">${t('remove')}</button>` : ''}</div></div>`;
+  document.body.appendChild(wrap);
+  const input = wrap.querySelector('#qty');
+  setTimeout(() => input.focus(), 50);
+  const val = () => Math.max(0, Number(String(input.value).replace(',', '.')) || 0);
+  wrap.querySelector('#minus').onclick = () => { input.value = String(Math.max(0, Math.round((val() - step) * 1000) / 1000)); };
+  wrap.querySelector('#plus').onclick = () => { input.value = String(Math.round((val() + step) * 1000) / 1000); };
+  const close = () => { wrap.remove(); current = null; };
+  wrap.querySelector('#shade').onclick = close; wrap.querySelector('#cancelBtn').onclick = close;
+  const commit = (mode) => {
+    if (input.value === '') { input.focus(); return; }
+    const qty = val(), name = needName();
+    const prev = lines.get(it.id);
+    lines.set(it.id, { counted_qty: mode === 'add' ? Number(prev?.counted_qty || 0) + qty : qty, counted_by: name, counted_at: new Date().toISOString() });
+    queue.push({ op: 'save', item_id: it.id, qty, mode, name }); persist(); close(); render(); flush(); toast(t('saved'));
+  };
+  wrap.querySelector('#saveBtn').onclick = () => commit('set');
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') commit(l ? 'set' : 'set'); });
+  if (l) {
+    wrap.querySelector('#addBtn').onclick = () => commit('add');
+    wrap.querySelector('#removeBtn').onclick = () => { lines.delete(it.id); queue.push({ op: 'remove', item_id: it.id }); persist(); close(); render(); flush(); };
+  }
+}
+
+// saves go through a queue kept on the phone, so a weak signal never loses a count
+function persist() { store.set(QKEY, JSON.stringify(queue)); }
+let flushing = false;
+async function flush() {
+  if (flushing || !queue.length) return;
+  flushing = true;
+  try {
+    while (queue.length) {
+      const job = queue[0];
+      try {
+        if (job.op === 'save') await call('save', { item_id: job.item_id, qty: job.qty, mode: job.mode, name: job.name });
+        else await call('remove', { item_id: job.item_id });
+        queue.shift(); persist();
+      } catch (ex) {
+        if (ex.fatal) { queue.shift(); persist(); if (!$('dead').classList.contains('hidden')) break; toast(ex.message, true); }
+        else { toast(t('net_err'), true); break; }
+      }
+    }
+  } finally { flushing = false; render(); }
+}
+window.addEventListener('online', flush);
+setInterval(flush, 15000);
+
+$('submit').onclick = async () => {
+  if (!needName() || !confirm(t('sure_done'))) return;
+  await flush();
+  try { await call('submit', { name: needName() }); toast(t('sent')); } catch (ex) { toast(ex.message, true); }
+};
+
+// barcode scanning with the phone camera (Chrome on Android); others search by name
+let stream = null, scanning = false;
+$('scanBtn').onclick = async () => {
+  if (!needName()) return;
+  if (!('BarcodeDetector' in window)) return toast(t('no_camera'), true);
+  try {
+    const det = new window.BarcodeDetector({ formats: ['code_128', 'ean_13', 'code_39', 'qr_code'] });
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const v = $('video'); v.srcObject = stream; await v.play();
+    $('cam').style.display = 'block'; scanning = true;
+    const tick = async () => {
+      if (!scanning) return;
+      try {
+        const codes = await det.detect(v);
+        if (codes.length) { stopCam(); return onCode(codes[0].rawValue); }
+      } catch { /* keep looking */ }
+      setTimeout(tick, 250);
+    };
+    tick();
+  } catch { stopCam(); toast(t('no_camera'), true); }
+};
+function stopCam() { scanning = false; $('cam').style.display = 'none'; if (stream) stream.getTracks().forEach((tr) => tr.stop()); stream = null; }
+$('camClose').onclick = stopCam;
+async function onCode(raw) {
+  const code = String(raw || '').trim().toUpperCase();
+  if (navigator.vibrate) navigator.vibrate(60);
+  let it = items.find((i) => String(i.barcode || '').toUpperCase() === code || String(i.code).toUpperCase() === code);
+  if (!it) {
+    try { const j = await call('barcode', { code }); if (j.item) { it = byId.get(j.item.id) || Object.assign(j.item, { extra: true }); if (!byId.has(it.id)) { items.push(it); byId.set(it.id, it); } } } catch { /* offline */ }
+  }
+  if (it) openItem(it); else toast(t('not_found', { c: code }), true);
+}
+
+(async () => {
+  $('name').value = store.get('fsks-scan-name') || '';
+  renderLang();
+  if (!token) return showDead();
+  try {
+    const j = await call('hello');
+    $('firm').textContent = j.firm;
+    $('ctitle').textContent = j.count.title;
+    $('cmeta').textContent = `${j.count.no} · ${t('till', { d: new Date(j.count.expires_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' }) })}`;
+    items = j.items; byId = new Map(items.map((i) => [i.id, i]));
+    for (const l of j.lines) lines.set(l.item_id, l);
+    for (const job of queue) { if (job.op === 'save') { const p = lines.get(job.item_id); lines.set(job.item_id, { counted_qty: job.mode === 'add' ? Number(p?.counted_qty || 0) + job.qty : job.qty, counted_by: job.name }); } else lines.delete(job.item_id); }
+    $('app').classList.remove('hidden'); $('footer').classList.remove('hidden');
+    render(); flush();
+  } catch (ex) { if (!ex.fatal) { $('app').classList.remove('hidden'); toast(t('net_err'), true); } }
+})();
+window.addEventListener('hashchange', () => location.reload());
+</script>
+</body>
+</html>
